@@ -3,11 +3,12 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
 
 
-Base = declarative_base()
+db = SQLAlchemy()
 
-class User(Base, SerializerMixin):
+class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     

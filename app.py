@@ -1,53 +1,41 @@
 # app.py
 from flask import Flask, jsonify, request, make_response
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
 from flask_migrate import Migrate
-from flask_bcrypt import Bcrypt  # For hashing passwords
-from flask_cors import CORS  # To allow communication with React frontend
+from flask_bcrypt import Bcrypt
+from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
-# Import models
-from models.user import User, Base as UserBase
+load_dotenv()
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default_secret_key_change_me')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///agri_smart.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+from models import db
+
+# Initialize extensions
+db.init_app(app)       # ✅ db now exists
+migrate = Migrate(app, db)
+bcrypt = Bcrypt(app)
+CORS(app)
+
+# Import models 
+from models.user import User
 from models.crop import Crop
 from models.disease import Disease, DiseaseTreatment
 from models.treatment import Treatment
 from models.report import Report
 
-# Load environment variables (for SECRET_KEY and DATABASE_URL)
-load_dotenv()
-
-# Initialize
-app = Flask(__name__)
-
-#Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default_secret_key_change_me')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///agri_smart.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-#Initialize Extensions
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
-bcrypt = Bcrypt(app)
-CORS(app)
-
-#Database Initialization
-if UserBase.metadata.bind is None:
-    UserBase.metadata.bind = db.engine
-
-
-#Home Route
+# Home Route
 @app.route('/')
 def home():
-    """Health check endpoint"""
     return '<h1>Agri-Smart Detect Backend Running!</h1>'
 
-
-#REPORT CRUD ROUTES
+# REPORT CRUD ROUTES
 @app.route('/reports', methods=['GET', 'POST'])
 def reports():
-    """Handles GET (retrieve all reports) and POST (create new report)"""
-
     if request.method == 'GET':
         try:
             reports = Report.query.limit(20).all()
@@ -57,14 +45,11 @@ def reports():
 
     elif request.method == 'POST':
         data = request.get_json()
-
         if not data or 'image_data' not in data:
             return make_response(
-                jsonify({'errors': ['Missing required image data or crop selection']}),
-                400
+                jsonify({'errors': ['Missing required image data or crop selection']}), 400
             )
 
-        # Simulated AI result
         simulated_disease_id = 1
         simulated_confidence = 0.925
 
@@ -83,13 +68,10 @@ def reports():
             db.session.rollback()
             return make_response(jsonify({'errors': [f'Could not process report: {str(e)}']}), 500)
 
-
 # REPORT DETAIL ROUTE
 @app.route('/reports/<int:report_id>', methods=['GET', 'PATCH', 'DELETE'])
 def report_by_id(report_id):
-    """Handles GET, PATCH, and DELETE for a specific report"""
     report = Report.query.get(report_id)
-
     if not report:
         return make_response(jsonify({'error': 'Report not found'}), 404)
 
@@ -120,15 +102,12 @@ def report_by_id(report_id):
             db.session.rollback()
             return make_response(jsonify({'errors': [str(e)]}), 500)
 
-
 # USER REGISTRATION PLACEHOLDER
 @app.route('/users', methods=['POST'])
 def create_user():
     """Placeholder for user registration"""
     # TODO: Implement user registration using bcrypt hashing
     pass
-
-
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5555))
