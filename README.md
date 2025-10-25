@@ -1,2 +1,0 @@
-# agri-smart-detect-backend
-
