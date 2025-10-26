@@ -1,6 +1,4 @@
-# models/crop.py
-
-from app import db
+from . import db
 from sqlalchemy_serializer import SerializerMixin
 
 class Crop(db.Model, SerializerMixin):
@@ -14,12 +12,11 @@ class Crop(db.Model, SerializerMixin):
     # Relationships
     reports = db.relationship(
         'Report',
-        backref=db.backref('crop', lazy='joined'),
+        backref='crop_reports',
         lazy='dynamic',
         cascade='all, delete-orphan'
     )
 
-    # Serialization Rules
     serialize_rules = ('-reports',)
 
     def __repr__(self):
