@@ -1,11 +1,15 @@
 # models/report.py
 
-from app import db
+from . import db
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
 
 class Report(db.Model, SerializerMixin):
     __tablename__ = 'reports'
+    __table_args__ = {"extend_existing": True}  #prevents duplicate table errors
+
 
     # --- Columns ---
     id = db.Column(db.Integer, primary_key=True)
@@ -19,9 +23,9 @@ class Report(db.Model, SerializerMixin):
     submission_date = db.Column(db.DateTime, default=datetime.utcnow)
 
     # --- Relationships ---
-    user = db.relationship('User', backref=db.backref('reports', lazy='dynamic', cascade='all, delete-orphan'))
-    crop = db.relationship('Crop', backref=db.backref('reports', lazy='dynamic', cascade='all, delete-orphan'))
-    disease = db.relationship('Disease', backref=db.backref('reports', lazy='dynamic'))
+    user = db.relationship('User', backref='user', lazy='joined')
+    crop = db.relationship('Crop', backref='crop', lazy='joined')
+    disease = db.relationship('Disease', backref='disease', lazy='joined')
 
     # --- Serialization Rules ---
     serialize_rules = (

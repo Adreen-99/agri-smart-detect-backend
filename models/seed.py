@@ -1,21 +1,44 @@
 #!/usr/bin/env python3
 """
-Seed script to populate the Agri-Smart Detect database with mock data.
+Seed script for Agri-Smart Detect database.
+Handles Users, Crops, Diseases, Treatments, and Disease-Treatment links.
 """
 
+import sys
+from datetime import datetime
 from app import app, db, bcrypt
 from models.user import User
 from models.crop import Crop
 from models.disease import Disease, DiseaseTreatment
 from models.treatment import Treatment
 from models.report import Report
-from datetime import datetime, timedelta
-import random
+
+# ------------------- Helper Functions ------------------- #
+
+def safe_commit():
+    """Commit DB session safely with rollback on error."""
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error committing to DB: {e}", file=sys.stderr)
+
+def clear_tables():
+    """Clear all tables to allow reseeding."""
+    print("🧹 Clearing tables...")
+    db.session.query(DiseaseTreatment).delete()
+    db.session.query(Report).delete()
+    db.session.query(Treatment).delete()
+    db.session.query(Disease).delete()
+    db.session.query(Crop).delete()
+    db.session.query(User).delete()
+    safe_commit()
+    print("✅ Tables cleared")
 
 # ------------------- Seed Functions ------------------- #
 
 def seed_users():
-    print("Seeding users...")
+    print("🌱 Seeding users...")
     users_data = [
         {'username': 'john_farmer', 'password': 'password123', 'phone_number': '+254712345678', 'county': 'Kiambu', 'is_extension_agent': False},
         {'username': 'mary_farmer', 'password': 'password123', 'phone_number': '+254723456789', 'county': 'Nakuru', 'is_extension_agent': False},
@@ -26,22 +49,20 @@ def seed_users():
     ]
 
     for data in users_data:
-        if User.query.filter_by(username=data['username']).first():
-            continue
-        password_hash = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-        user = User(
-            username=data['username'],
-            password_hash=password_hash,
-            phone_number=data['phone_number'],
-            county=data['county'],
-            is_extension_agent=data['is_extension_agent']
-        )
-        db.session.add(user)
-    db.session.commit()
+        if not User.query.filter_by(username=data['username']).first():
+            password_hash = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+            db.session.add(User(
+                username=data['username'],
+                password_hash=password_hash,
+                phone_number=data['phone_number'],
+                county=data['county'],
+                is_extension_agent=data['is_extension_agent']
+            ))
+    safe_commit()
     print(f"✅ Created {len(users_data)} users")
 
 def seed_crops():
-    print("Seeding crops...")
+    print("🌱 Seeding crops...")
     crops_data = [
         {'name': 'Maize', 'scientific_name': 'Zea mays', 'base_region': 'Rift Valley, Western Kenya'},
         {'name': 'Beans', 'scientific_name': 'Phaseolus vulgaris', 'base_region': 'Central Kenya, Eastern Kenya'},
@@ -53,14 +74,13 @@ def seed_crops():
         {'name': 'Wheat', 'scientific_name': 'Triticum aestivum', 'base_region': 'Rift Valley, North Eastern'}
     ]
     for data in crops_data:
-        if Crop.query.filter_by(name=data['name']).first():
-            continue
-        db.session.add(Crop(**data))
-    db.session.commit()
+        if not Crop.query.filter_by(name=data['name']).first():
+            db.session.add(Crop(**data))
+    safe_commit()
     print(f"✅ Created {len(crops_data)} crops")
 
 def seed_diseases():
-    print("Seeding diseases...")
+    print("🌱 Seeding diseases...")
     diseases_data = [
         {'name': 'Maize Streak Virus', 'symptoms': 'Yellow streaks on leaves', 'cause': 'Maize streak virus transmitted by leafhoppers', 'ai_model_accuracy': 0.92},
         {'name': 'Late Blight', 'symptoms': 'Dark lesions on leaves', 'cause': 'Phytophthora infestans fungus', 'ai_model_accuracy': 0.88},
@@ -72,14 +92,13 @@ def seed_diseases():
         {'name': 'Wheat Stem Rust', 'symptoms': 'Reddish-brown pustules', 'cause': 'Puccinia graminis fungus', 'ai_model_accuracy': 0.91}
     ]
     for data in diseases_data:
-        if Disease.query.filter_by(name=data['name']).first():
-            continue
-        db.session.add(Disease(**data))
-    db.session.commit()
+        if not Disease.query.filter_by(name=data['name']).first():
+            db.session.add(Disease(**data))
+    safe_commit()
     print(f"✅ Created {len(diseases_data)} diseases")
 
 def seed_treatments():
-    print("Seeding treatments...")
+    print("🌱 Seeding treatments...")
     treatments_data = [
         {'name': 'Copper-based Fungicide', 'description': 'Chemical fungicide', 'organic_status': False, 'cost_estimate': 'KES 800-1200 per litre'},
         {'name': 'Neem Oil Spray', 'description': 'Organic pesticide', 'organic_status': True, 'cost_estimate': 'KES 600-900 per litre'},
@@ -93,14 +112,13 @@ def seed_treatments():
         {'name': 'Sulfur-based Fungicide', 'description': 'Chemical fungicide', 'organic_status': False, 'cost_estimate': 'KES 400-600 per kg'}
     ]
     for data in treatments_data:
-        if Treatment.query.filter_by(name=data['name']).first():
-            continue
-        db.session.add(Treatment(**data))
-    db.session.commit()
+        if not Treatment.query.filter_by(name=data['name']).first():
+            db.session.add(Treatment(**data))
+    safe_commit()
     print(f"✅ Created {len(treatments_data)} treatments")
 
 def seed_disease_treatments():
-    print("Seeding disease-treatment relationships...")
+    print("🌱 Seeding disease-treatment relationships...")
     mapping = {
         'Maize Streak Virus': ['Neem Oil Spray', 'Plant Growth Promoters'],
         'Late Blight': ['Copper-based Fungicide', 'Mancozeb Fungicide', 'Bacillus subtilis'],
@@ -122,13 +140,16 @@ def seed_disease_treatments():
                 continue
             if not DiseaseTreatment.query.filter_by(disease_id=disease.id, treatment_id=treatment.id).first():
                 db.session.add(DiseaseTreatment(disease_id=disease.id, treatment_id=treatment.id, priority_rank=i))
-    db.session.commit()
+    safe_commit()
     print("✅ Disease-treatment relationships seeded")
 
 # ------------------- Main Seeder ------------------- #
-def main():
+
+def main(clear_first=False):
     print("🌱 Starting database seeding...")
     with app.app_context():
+        if clear_first:
+            clear_tables()
         seed_users()
         seed_crops()
         seed_diseases()
@@ -137,4 +158,4 @@ def main():
         print("✅ Database seeding completed successfully!")
 
 if __name__ == '__main__':
-    main()
+    main(clear_first='clear' in sys.argv)
