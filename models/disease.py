@@ -1,50 +1,38 @@
-# models/disease.py
-
-from app import db
+from . import db
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import relationship
 from sqlalchemy_serializer import SerializerMixin
-
-class DiseaseTreatment(db.Model, SerializerMixin):
-    __tablename__ = 'disease_treatment'
-
-    disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id'), primary_key=True)
-    treatment_id = db.Column(db.Integer, db.ForeignKey('treatments.id'), primary_key=True)
-    priority_rank = db.Column(db.Integer, default=1, nullable=False)
-
-    disease = db.relationship('Disease', back_populates='treatments_link')
-    treatment = db.relationship('Treatment', back_populates='diseases_link')
-
-    def __repr__(self):
-        return f'<DiseaseTreatment disease_id={self.disease_id} treatment_id={self.treatment_id}>'
-
 
 class Disease(db.Model, SerializerMixin):
     __tablename__ = 'diseases'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
-    symptoms = db.Column(db.Text)
-    cause = db.Column(db.String(255))
+    name = db.Column(db.String(100), nullable=False)
+    symptoms = db.Column(db.String)
+    cause = db.Column(db.String)
     ai_model_accuracy = db.Column(db.Float)
 
-    # Relationships
-    treatments_link = db.relationship(
+    treatments = db.relationship(
         'DiseaseTreatment',
-        back_populates='disease',
+        backref=db.backref('disease', lazy='joined'),
+        lazy='dynamic',
         cascade='all, delete-orphan'
     )
-    treatments = db.relationship(
-        'Treatment',
-        secondary='disease_treatment',
-        viewonly=True
-    )
-    reports = db.relationship(
-        'Report',
-        backref=db.backref('disease', lazy='joined'),
-        lazy='dynamic'
-    )
 
-    # Serialization Rules
-    serialize_rules = ('-reports', '-treatments_link',)
+    serialize_rules = ('-treatments.disease',)
 
     def __repr__(self):
         return f'<Disease {self.name}>'
+
+class DiseaseTreatment(db.Model, SerializerMixin):
+    __tablename__ = 'disease_treatments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id'), nullable=False)
+    treatment_id = db.Column(db.Integer, db.ForeignKey('treatments.id'), nullable=False)
+    priority_rank = db.Column(db.Integer)
+
+    serialize_rules = ('-disease.treatments', '-treatment.disease_treatments',)
+
+    def __repr__(self):
+        return f'<DiseaseTreatment Disease:{self.disease_id} Treatment:{self.treatment_id}>'

@@ -1,25 +1,24 @@
-from app import db
+from . import db
+from sqlalchemy import Column, Integer, String, Boolean, Float
 from sqlalchemy_serializer import SerializerMixin
 
 class Treatment(db.Model, SerializerMixin):
     __tablename__ = 'treatments'
 
-    # Columns
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)
-    description = db.Column(db.Text)
-    organic_status = db.Column(db.Boolean, default=False)  # True for organic, False for chemical/other
-    cost_estimate = db.Column(db.String(50))
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String)
+    organic_status = db.Column(db.Boolean)
+    cost_estimate = db.Column(db.String)
 
-    # Relationships
-    diseases_link = db.relationship(
+    disease_treatments = db.relationship(
         'DiseaseTreatment',
-        back_populates='treatment',
+        backref=db.backref('treatment', lazy='joined'),
+        lazy='dynamic',
         cascade='all, delete-orphan'
     )
 
-    # Serialization rules
-    serialize_rules = ('-diseases_link',)
+    serialize_rules = ('-disease_treatments.treatment',)
 
     def __repr__(self):
         return f'<Treatment {self.name}>'

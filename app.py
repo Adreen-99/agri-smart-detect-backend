@@ -9,24 +9,18 @@ import os
 
 load_dotenv()
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default_secret_key_change_me')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///agri_smart.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-from models import db
+from models import db, User, Crop, Disease, DiseaseTreatment, Treatment, Report
 
 # Initialize extensions
 db.init_app(app)       # ✅ db now exists
 migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 CORS(app)
-
-# Import models 
-from models.user import User
-from models.crop import Crop
-from models.disease import Disease, DiseaseTreatment
-from models.treatment import Treatment
-from models.report import Report
 
 # Home Route
 @app.route('/')
