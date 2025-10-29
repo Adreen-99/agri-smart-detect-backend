@@ -2,11 +2,12 @@ import os
 from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+project_root = os.path.dirname(basedir)
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'agri-smart-detect-secret-key-2024'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
+        'sqlite:///' + os.path.join(project_root, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # JWT Configuration
