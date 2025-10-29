@@ -1,11 +1,22 @@
-from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager
-from flask_cors import CORS
-from flask_bcrypt import Bcrypt
-from dotenv import load_dotenv
-from config import Config
+import os
+try:
+    from flask import Flask, jsonify
+    from flask_sqlalchemy import SQLAlchemy
+    from flask_migrate import Migrate
+    from flask_jwt_extended import JWTManager
+    from flask_cors import CORS
+    from flask_bcrypt import Bcrypt
+    from dotenv import load_dotenv
+except ImportError as e:
+    missing = str(e)
+    raise RuntimeError(
+        f"Missing dependency: {missing}. Please install the project requirements, for example:\n"
+        f"  pip install -r requirements.txt\n"
+        f"or install the needed packages manually, e.g.:\n"
+        f"  pip install flask flask_sqlalchemy flask_migrate flask_jwt_extended flask_cors flask_bcrypt python-dotenv"
+    ) from e
+
+from config import Config, ProductionConfig, DevelopmentConfig, TestingConfig
 
 # Load environment variables
 load_dotenv()
@@ -15,7 +26,18 @@ migrate = Migrate()
 jwt = JWTManager()
 bcrypt = Bcrypt()
 
-def create_app(config_class=Config):
+def create_app(config_class=None):
+    """Application factory pattern with environment-based config selection"""
+    if config_class is None:
+        # Auto-select config based on FLASK_ENV environment variable
+        flask_env = os.environ.get('FLASK_ENV', 'development')
+        if flask_env == 'production':
+            config_class = ProductionConfig
+        elif flask_env == 'testing':
+            config_class = TestingConfig
+        else:
+            config_class = DevelopmentConfig
+
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -38,7 +60,6 @@ def create_app(config_class=Config):
     app.register_blueprint(reports_bp, url_prefix='/api/reports')
 
     # Create upload directory
-    import os
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.makedirs(app.config['UPLOAD_FOLDER'])
 

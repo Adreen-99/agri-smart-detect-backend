@@ -6,6 +6,7 @@ project_root = os.path.dirname(basedir)
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'agri-smart-detect-secret-key-2024'
+    # Use DATABASE_URL for production (Render/PostgreSQL), fallback to SQLite for development
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(project_root, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -37,4 +38,42 @@ class Config:
     PLANT_ID_API_URL = 'https://api.plant.id/v2/identify'
     
     # Frontend URL for email links
-    FRONTEND_URL = 'https://agri-smart-detect.onrender.com'
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://agri-smart-detect.onrender.com')
+
+
+class ProductionConfig(Config):
+    """Production configuration for Render deployment"""
+    DEBUG = False
+    TESTING = False
+
+    # Force HTTPS in production
+    SESSION_COOKIE_SECURE = True
+    REMEMBER_COOKIE_SECURE = True
+
+    # Database must be provided via DATABASE_URL in production
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+
+    if not SQLALCHEMY_DATABASE_URI:
+        raise ValueError("DATABASE_URL environment variable is required for production")
+
+    # All other configs inherited from base Config class
+
+
+class DevelopmentConfig(Config):
+    """Development configuration"""
+    DEBUG = True
+    TESTING = False
+
+    # SQLite for development
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(project_root, 'app.db')
+
+
+class TestingConfig(Config):
+    """Testing configuration"""
+    DEBUG = True
+    TESTING = True
+
+    # In-memory SQLite for testing
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
