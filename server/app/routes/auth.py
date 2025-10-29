@@ -14,7 +14,7 @@ def register():
         data = request.get_json()
 
         # Validate required fields
-        required_fields = ['name', 'email', 'password', 'farm_name', 'farm_size', 'location']
+        required_fields = ['name', 'email', 'password']
         for field in required_fields:
             if field not in data or not data[field]:
                 return jsonify({'error': f'{field} is required'}), 400
@@ -33,21 +33,10 @@ def register():
         if len(data['password']) < 6:
             return jsonify({'error': 'Password must be at least 6 characters long'}), 400
 
-        # Validate farm_size
-        try:
-            farm_size = float(data['farm_size'])
-            if farm_size <= 0:
-                return jsonify({'error': 'Farm size must be a positive number'}), 400
-        except (ValueError, TypeError):
-            return jsonify({'error': 'Farm size must be a valid number'}), 400
-
         # Create new user
         user = User(
             name=data['name'],
-            email=data['email'],
-            farm_name=data['farm_name'],
-            farm_size=farm_size,
-            location=data['location']
+            email=data['email']
         )
         user.set_password(data['password'])
 
@@ -136,18 +125,10 @@ def update_profile():
         data = request.get_json()
 
         # Update allowed fields
-        allowed_fields = ['name', 'farm_name', 'farm_size', 'location']
+        allowed_fields = ['name']
         for field in allowed_fields:
             if field in data:
-                if field == 'farm_size':
-                    try:
-                        user.farm_size = float(data[field])
-                        if user.farm_size <= 0:
-                            return jsonify({'error': 'Farm size must be a positive number'}), 400
-                    except (ValueError, TypeError):
-                        return jsonify({'error': 'Farm size must be a valid number'}), 400
-                else:
-                    setattr(user, field, data[field])
+                setattr(user, field, data[field])
 
         db.session.commit()
 
