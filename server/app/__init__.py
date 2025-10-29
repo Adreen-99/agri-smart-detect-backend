@@ -4,7 +4,11 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
+from dotenv import load_dotenv
 from config import Config
+
+# Load environment variables
+load_dotenv()
 
 db = SQLAlchemy()
 migrate = Migrate()
