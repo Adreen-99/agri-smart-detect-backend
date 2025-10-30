@@ -2,8 +2,8 @@ services:
   - type: web
     name: agri-smart-detect-backend
     runtime: python3
-    buildCommand: "cd server && pip install -r requirements.txt"
-    startCommand: "cd server && python -m gunicorn --bind 0.0.0.0:$PORT app:create_app"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python -m gunicorn --bind 0.0.0.0:$PORT app:create_app"
     envVars:
       - key: FLASK_ENV
         value: production

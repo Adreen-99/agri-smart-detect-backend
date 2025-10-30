@@ -19,8 +19,7 @@ class Config:
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "https://agri-smart-detect.onrender.com",
-        "https://agri-smart-detect-frontend.onrender.com",
-        "https://agri-smart-detect.up.railway.app"
+        "https://agri-smart-detect-frontend.onrender.com"
     ]
 
     # File upload configuration
@@ -38,7 +37,7 @@ class Config:
     PLANT_ID_API_URL = 'https://api.plant.id/v2/identify'
 
     # Frontend URL for email links
-    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://agri-smart-detect.up.railway.app')
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://agri-smart-detect.onrender.com')
 
 
 class ProductionConfig(Config):
