@@ -7,5 +7,5 @@ flask-cors==4.0.0
 flask-bcrypt==1.0.1
 python-dotenv==1.0.0
 sendgrid==6.10.0
-sqlalchemy==2.0.23
+sqlalchemy>=2.0.23
 requests==2.31.0
