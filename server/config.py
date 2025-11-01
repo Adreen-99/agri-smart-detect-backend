@@ -5,9 +5,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'agri-smart-detect-secret-key-2024'
-    # Use DATABASE_URL from environment, fallback to SQLite in instance folder
+    # Use DATABASE_URL from environment, fallback to PostgreSQL in development
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
+        'postgresql://username:password@localhost:5432/agri_smart_detect'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT Configuration
