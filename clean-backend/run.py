@@ -35,18 +35,18 @@ def init_sample_data():
         db.session.commit()
         print("✅ Agri Smart Detect Backend initialized successfully!")
 
-if __name__ == '__main__':
-    with app.app_context():
+# Initialize database tables and sample data when app starts
+with app.app_context():
+    try:
         db.create_all()
         init_sample_data()
+        print("✅ Database initialized successfully!")
+    except Exception as e:
+        print(f"⚠️ Database initialization warning: {e}")
 
+if __name__ == '__main__':
+    # This block only runs when using Flask dev server (not with gunicorn)
     port = int(os.environ.get('PORT', 5000))
     debug_mode = os.environ.get('FLASK_ENV') != 'production'
     print(f"🚀 Agri Smart Detect Backend running on port {port} (debug={debug_mode})")
-
-    # Use gunicorn in production, Flask dev server in development
-    if os.environ.get('FLASK_ENV') == 'production':
-        from gunicorn.app.wsgiapp import WSGIApplication
-        WSGIApplication("%(prog)s [OPTIONS] [APP_MODULE]").run()
-    else:
-        app.run(host='0.0.0.0', port=port, debug=debug_mode)
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

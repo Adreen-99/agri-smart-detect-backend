@@ -59,9 +59,40 @@ def create_app(config_class=None):
     app.register_blueprint(diagnosis_bp, url_prefix='/api/diagnosis')
     app.register_blueprint(reports_bp, url_prefix='/api/reports')
 
-    # Create upload directory
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
+    # Create upload directory (exist_ok=True prevents race condition with multiple workers)
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+    # Root health check endpoint for deployment verification
+    @app.route('/')
+    def root():
+        return jsonify({
+            'status': 'healthy',
+            'message': 'Agri Smart Detect Backend API is running',
+            'version': '1.0.0',
+            'endpoints': {
+                'auth': '/api/auth',
+                'diagnosis': '/api/diagnosis',
+                'reports': '/api/reports'
+            }
+        }), 200
+
+    @app.route('/health')
+    def health():
+        """Health check endpoint for monitoring"""
+        try:
+            # Test database connection
+            db.session.execute(db.text('SELECT 1'))
+            return jsonify({
+                'status': 'healthy',
+                'database': 'connected',
+                'message': 'All systems operational'
+            }), 200
+        except Exception as e:
+            return jsonify({
+                'status': 'unhealthy',
+                'database': 'disconnected',
+                'error': str(e)
+            }), 503
 
     # Error handlers
     @app.errorhandler(404)
