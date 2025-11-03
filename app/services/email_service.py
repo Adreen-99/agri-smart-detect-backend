@@ -1,14 +1,17 @@
 import os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
+import resend
 from flask import current_app
 
 class EmailService:
     def __init__(self):
-        self.api_key = current_app.config.get('SENDGRID_API_KEY')
-        self.from_email = current_app.config.get('SENDGRID_FROM_EMAIL')
+        self.api_key = current_app.config.get('RESEND_API_KEY')
+        self.from_email = current_app.config.get('RESEND_FROM_EMAIL')
         self.app_name = current_app.config.get('APP_NAME')
         self.frontend_url = current_app.config.get('FRONTEND_URL', 'https://agri-smart-detect.onrender.com')
+        
+        # Configure Resend API key
+        if self.api_key:
+            resend.api_key = self.api_key
     
     def send_welcome_email(self, user_email, user_name):
         """Send welcome email after registration"""
@@ -202,24 +205,23 @@ class EmailService:
         return self._send_email(user_email, subject, html_content)
     
     def _send_email(self, to_email, subject, html_content):
-        """Send email using SendGrid"""
+        """Send email using Resend"""
         try:
             if not self.api_key:
-                print(f"SendGrid not configured. Would send email to {to_email}: {subject}")
+                print(f"Resend not configured. Would send email to {to_email}: {subject}")
                 return True  # Return success in development
             
-            message = Mail(
-                from_email=Email(self.from_email),
-                to_emails=To(to_email),
-                subject=subject,
-                html_content=Content("text/html", html_content)
-            )
+            params = {
+                "from": self.from_email,
+                "to": [to_email],
+                "subject": subject,
+                "html": html_content
+            }
             
-            sg = SendGridAPIClient(self.api_key)
-            response = sg.send(message)
+            response = resend.Emails.send(params)
             
-            print(f"Email sent to {to_email}. Status: {response.status_code}")
-            return response.status_code in [200, 202]
+            print(f"Email sent to {to_email}. Response: {response}")
+            return True
             
         except Exception as e:
             print(f"Failed to send email to {to_email}: {str(e)}")
