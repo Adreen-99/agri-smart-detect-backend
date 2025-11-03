@@ -6,7 +6,7 @@ flask-jwt-extended==4.7.1
 flask-cors==6.0.1
 flask-bcrypt==1.0.1
 python-dotenv==1.2.1
-sendgrid==6.10.0
+resend==2.19.0
 sqlalchemy==2.0.44
 psycopg2-binary==2.9.11
 requests==2.32.5
