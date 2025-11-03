@@ -48,7 +48,7 @@ def create_app(config_class=None):
     bcrypt.init_app(app)
     
     # Configure CORS for frontend
-    CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
+    CORS(app, origins=app.config['CORS_ORIGINS'], methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], supports_credentials=True)
 
     # Register blueprints
     from app.routes.auth import auth_bp
