@@ -27,9 +27,9 @@ class Config:
     UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
-    # SendGrid Configuration
-    SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-    SENDGRID_FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'noreply@agri-smart-detect.com')
+    # Resend Configuration
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY')
+    RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'noreply@agri-smart-detect.com')
     APP_NAME = 'Agri Smart Detect'
 
     # Plant.id API Configuration
