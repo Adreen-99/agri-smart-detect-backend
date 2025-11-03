@@ -6,6 +6,17 @@ from app import bcrypt, db
 import re
 
 auth_bp = Blueprint('auth', __name__)
+@auth_bp.route('/users', methods=['GET'])
+def get_users():
+    """Get all users (for testing purposes)"""
+    try:
+        users = User.query.all()
+        return jsonify({
+            'users': [user.to_dict() for user in users]
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
