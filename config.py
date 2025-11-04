@@ -15,12 +15,16 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=30)
 
     # CORS Configuration
-    CORS_ORIGINS = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://agri-smart-detect.onrender.com",
-        "https://agri-smart-detect-frontend.onrender.com"
-    ]
+    cors_origins_str = os.environ.get('CORS_ORIGINS')
+    if cors_origins_str:
+        CORS_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',')]
+    else:
+        CORS_ORIGINS = [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://agri-smart-detect.onrender.com",
+            "https://agri-smart-detect-frontend.onrender.com"
+        ]
 
     # File upload configuration
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
