@@ -48,16 +48,16 @@ def create_app(config_class=None):
     bcrypt.init_app(app)
     
     # Configure CORS for frontend
-    CORS(app, origins=app.config['CORS_ORIGINS'], methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], supports_credentials=True)
+    CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allow_headers=['Content-Type', 'Authorization'])
 
     # Register blueprints
     from app.routes.auth import auth_bp
     from app.routes.diagnosis import diagnosis_bp
     from app.routes.reports import reports_bp
 
-    app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    app.register_blueprint(diagnosis_bp, url_prefix='/api/diagnosis')
-    app.register_blueprint(reports_bp, url_prefix='/api/reports')
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(diagnosis_bp, url_prefix='/diagnosis')
+    app.register_blueprint(reports_bp, url_prefix='/reports')
 
     # Create upload directory (exist_ok=True prevents race condition with multiple workers)
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -78,9 +78,9 @@ def create_app(config_class=None):
             'message': 'Agri Smart Detect Backend API is running',
             'version': '1.0.0',
             'endpoints': {
-                'auth': '/api/auth',
-                'diagnosis': '/api/diagnosis',
-                'reports': '/api/reports'
+                'auth': '/auth',
+                'diagnosis': '/diagnosis',
+                'reports': '/reports'
             }
         }), 200
 
