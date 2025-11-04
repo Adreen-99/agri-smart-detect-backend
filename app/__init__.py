@@ -62,6 +62,14 @@ def create_app(config_class=None):
     # Create upload directory (exist_ok=True prevents race condition with multiple workers)
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+    # Initialize database tables
+    with app.app_context():
+        try:
+            db.create_all()
+            print("✅ Database tables initialized successfully!")
+        except Exception as e:
+            print(f"⚠️ Database initialization warning: {e}")
+
     # Root health check endpoint for deployment verification
     @app.route('/')
     def root():
